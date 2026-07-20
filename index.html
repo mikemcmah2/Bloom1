@@ -12,7 +12,6 @@
 <meta name="theme-color" content="#E8677D" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@500;600;700;800&display=swap" rel="stylesheet" />
-<!-- React is now embedded directly below — no external script requests at all -->
 <style>
 * { box-sizing: border-box; }
 body { margin:0; font-family:'Nunito','Quicksand',system-ui,sans-serif; }
@@ -120,7 +119,16 @@ input[type="date"], input[type="password"] { font-family: inherit; }
 <body>
 <div id="root"></div>
 <script>
+// Only take over the whole screen for errors that happen BEFORE the app has
+// successfully rendered (i.e. real load failures). Once the app is running,
+// later errors (e.g. from a single button action) are logged to the console
+// instead of wiping out the user's visible app and any unsaved work.
+window.__appMounted = false;
 window.addEventListener('error', function (e) {
+  if (window.__appMounted) {
+    console.error('App error after mount (not shown full-screen):', e.message, e.filename, e.lineno);
+    return;
+  }
   var root = document.getElementById('root');
   if (root) {
     root.innerHTML = '<pre style="padding:20px;color:#a00;white-space:pre-wrap;font-family:monospace;font-size:13px;line-height:1.5;">' +
@@ -131,8 +139,8 @@ window.addEventListener('error', function (e) {
 });
 setTimeout(function () {
   var root = document.getElementById('root');
-  if (root && root.innerHTML.trim() === '') {
-    root.innerHTML = '<pre style="padding:20px;color:#a00;font-family:monospace;font-size:13px;">Nothing rendered after 6 seconds.\nThis usually means a script from a CDN (React or React DOM) was blocked.</pre>';
+  if (!window.__appMounted && root && root.innerHTML.trim() === '') {
+    root.innerHTML = '<pre style="padding:20px;color:#a00;font-family:monospace;font-size:13px;">Nothing rendered after 6 seconds.\nThis usually means a script from a CDN was blocked.</pre>';
   }
 }, 6000);
 </script>
@@ -17327,42 +17335,6 @@ var __assign = (this && this.__assign) || function () {
     };
     return __assign.apply(this, arguments);
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
-    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (g && (g = 0, op[0] && (_ = 0)), _) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
 var __read = (this && this.__read) || function (o, n) {
     var m = typeof Symbol === "function" && o[Symbol.iterator];
     if (!m) return o;
@@ -17404,6 +17376,7 @@ var Plus = makeIcon("\u2795");
 var Check = makeIcon("\u2705");
 var X = makeIcon("\u2716\uFE0F");
 var ScrollText = makeIcon("\uD83D\uDCDC");
+var Pencil = makeIcon("\u270F\uFE0F");
 var useState = React.useState, useEffect = React.useEffect, useMemo = React.useMemo, useCallback = React.useCallback;
 // ---------- date helpers ----------
 var toDate = function (s) { var _a = __read(s.split("-").map(Number), 3), y = _a[0], m = _a[1], d = _a[2]; return new Date(y, m - 1, d); };
@@ -17422,9 +17395,6 @@ var SEED_CYCLES = [
 ];
 var SEED_MOOD_DAYS = ["2026-04-03", "2026-05-02", "2026-05-28", "2026-06-20"];
 var SEED_INTIMACY = ["2026-04-14", "2026-05-10", "2026-05-12", "2026-05-23", "2026-06-06", "2026-06-09", "2026-06-27", "2026-07-04"];
-function withTimeout(promise, ms) {
-    return Promise.race([promise, new Promise(function (_, reject) { return setTimeout(function () { return reject(new Error("timeout")); }, ms); })]);
-}
 // ---------- prediction engine ----------
 // Mood is now a flat list of dates (a "phase" can span several days). Each cycle's
 // mood-phase onset is the earliest logged mood date that falls after the previous
@@ -17537,66 +17507,65 @@ function CycleWheel(_a) {
             s.label); }))));
 }
 function CycleTrackerApp() {
-    var _this = this;
     var _a = __read(useState("home"), 2), tab = _a[0], setTab = _a[1];
-    var _b = __read(useState(SEED_CYCLES), 2), cycles = _b[0], setCycles = _b[1];
-    var _c = __read(useState(SEED_MOOD_DAYS), 2), moodDays = _c[0], setMoodDays = _c[1];
-    var _d = __read(useState(SEED_INTIMACY), 2), intimacy = _d[0], setIntimacy = _d[1];
+    var _b = __read(useState(function () {
+        try {
+            var raw = localStorage.getItem("totu_cycles");
+            return raw ? JSON.parse(raw) : SEED_CYCLES;
+        }
+        catch (e) {
+            return SEED_CYCLES;
+        }
+    }), 2), cycles = _b[0], setCycles = _b[1];
+    var _c = __read(useState(function () {
+        try {
+            var raw = localStorage.getItem("totu_moodDays");
+            if (raw)
+                return JSON.parse(raw);
+            var rawCycles = localStorage.getItem("totu_cycles");
+            if (rawCycles) {
+                var parsed = JSON.parse(rawCycles);
+                var legacy = parsed.filter(function (c) { return c.moodDay; }).map(function (c) { return c.moodDay; });
+                if (legacy.length)
+                    return Array.from(new Set(__spreadArray(__spreadArray([], __read(SEED_MOOD_DAYS), false), __read(legacy), false))).sort();
+            }
+            return SEED_MOOD_DAYS;
+        }
+        catch (e) {
+            return SEED_MOOD_DAYS;
+        }
+    }), 2), moodDays = _c[0], setMoodDays = _c[1];
+    var _d = __read(useState(function () {
+        try {
+            var raw = localStorage.getItem("totu_intimacy");
+            return raw ? JSON.parse(raw) : SEED_INTIMACY;
+        }
+        catch (e) {
+            return SEED_INTIMACY;
+        }
+    }), 2), intimacy = _d[0], setIntimacy = _d[1];
     var _e = __read(useState(""), 2), toast = _e[0], setToast = _e[1];
-    useEffect(function () {
-        var cancelled = false;
-        (function () { return __awaiter(_this, void 0, void 0, function () {
-            var c, parsed, legacyMood_1, _a, m, _b, i, _c;
-            return __generator(this, function (_d) {
-                switch (_d.label) {
-                    case 0:
-                        _d.trys.push([0, 2, , 3]);
-                        return [4 /*yield*/, withTimeout(window.storage.get("cycles"), 3000)];
-                    case 1:
-                        c = _d.sent();
-                        if (!cancelled && c && c.value) {
-                            parsed = JSON.parse(c.value);
-                            setCycles(parsed);
-                            legacyMood_1 = parsed.filter(function (c) { return c.moodDay; }).map(function (c) { return c.moodDay; });
-                            if (legacyMood_1.length) {
-                                setMoodDays(function (prev) { return Array.from(new Set(__spreadArray(__spreadArray([], __read(prev), false), __read(legacyMood_1), false))).sort(); });
-                            }
-                        }
-                        return [3 /*break*/, 3];
-                    case 2:
-                        _a = _d.sent();
-                        return [3 /*break*/, 3];
-                    case 3:
-                        _d.trys.push([3, 5, , 6]);
-                        return [4 /*yield*/, withTimeout(window.storage.get("moodDays"), 3000)];
-                    case 4:
-                        m = _d.sent();
-                        if (!cancelled && m && m.value)
-                            setMoodDays(JSON.parse(m.value));
-                        return [3 /*break*/, 6];
-                    case 5:
-                        _b = _d.sent();
-                        return [3 /*break*/, 6];
-                    case 6:
-                        _d.trys.push([6, 8, , 9]);
-                        return [4 /*yield*/, withTimeout(window.storage.get("intimacy"), 3000)];
-                    case 7:
-                        i = _d.sent();
-                        if (!cancelled && i && i.value)
-                            setIntimacy(JSON.parse(i.value));
-                        return [3 /*break*/, 9];
-                    case 8:
-                        _c = _d.sent();
-                        return [3 /*break*/, 9];
-                    case 9: return [2 /*return*/];
-                }
-            });
-        }); })();
-        return function () { cancelled = true; };
+    var persistCycles = useCallback(function (next) {
+        setCycles(next);
+        try {
+            localStorage.setItem("totu_cycles", JSON.stringify(next));
+        }
+        catch (e) { /* storage unavailable — state still updates for this session */ }
     }, []);
-    var persistCycles = useCallback(function (next) { setCycles(next); withTimeout(window.storage.set("cycles", JSON.stringify(next)), 3000).catch(function () { }); }, []);
-    var persistMoodDays = useCallback(function (next) { setMoodDays(next); withTimeout(window.storage.set("moodDays", JSON.stringify(next)), 3000).catch(function () { }); }, []);
-    var persistIntimacy = useCallback(function (next) { setIntimacy(next); withTimeout(window.storage.set("intimacy", JSON.stringify(next)), 3000).catch(function () { }); }, []);
+    var persistMoodDays = useCallback(function (next) {
+        setMoodDays(next);
+        try {
+            localStorage.setItem("totu_moodDays", JSON.stringify(next));
+        }
+        catch (e) { /* storage unavailable — state still updates for this session */ }
+    }, []);
+    var persistIntimacy = useCallback(function (next) {
+        setIntimacy(next);
+        try {
+            localStorage.setItem("totu_intimacy", JSON.stringify(next));
+        }
+        catch (e) { /* storage unavailable — state still updates for this session */ }
+    }, []);
     var model = useMemo(function () { return computeModel(cycles, moodDays); }, [cycles, moodDays]);
     var flash = function (msg) { setToast(msg); setTimeout(function () { return setToast(""); }, 1800); };
     function logBleeding(dateStr) {
@@ -17629,6 +17598,26 @@ function CycleTrackerApp() {
     function deleteIntimacy(dateStr) { persistIntimacy(intimacy.filter(function (d) { return d !== dateStr; })); }
     function deleteCycle(id) { persistCycles(cycles.filter(function (c) { return c.id !== id; })); }
     function deleteOvulation(id) { persistCycles(cycles.map(function (c) { return (c.id === id ? __assign(__assign({}, c), { ovulationActual: null }) : c); })); }
+    function editCycleDate(id, newDate) { persistCycles(cycles.map(function (c) { return (c.id === id ? __assign(__assign({}, c), { bleedingStart: newDate }) : c); })); flash("Updated to ".concat(fmt(newDate))); }
+    function editOvulationDate(id, newDate) { persistCycles(cycles.map(function (c) { return (c.id === id ? __assign(__assign({}, c), { ovulationActual: newDate }) : c); })); flash("Updated to ".concat(fmt(newDate))); }
+    function editMoodDay(oldDate, newDate) {
+        if (oldDate === newDate)
+            return;
+        var next = moodDays.filter(function (d) { return d !== oldDate; });
+        if (!next.includes(newDate))
+            next.push(newDate);
+        persistMoodDays(next.sort());
+        flash("Updated to ".concat(fmt(newDate)));
+    }
+    function editIntimacyDate(oldDate, newDate) {
+        if (oldDate === newDate)
+            return;
+        var next = intimacy.filter(function (d) { return d !== oldDate; });
+        if (!next.includes(newDate))
+            next.push(newDate);
+        persistIntimacy(next.sort());
+        flash("Updated to ".concat(fmt(newDate)));
+    }
     return (React.createElement("div", { style: { background: COLORS.bg, minHeight: "100vh" }, className: "pb-20" },
         React.createElement("style", null, "@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@500;600;700;800&display=swap'); h1,h2,h3,.display { font-family:'Baloo 2', system-ui, sans-serif; } body,.app-root { font-family:'Nunito','Quicksand',system-ui,sans-serif; }"),
         React.createElement("div", { className: "px-5 pt-6 pb-3" },
@@ -17637,7 +17626,7 @@ function CycleTrackerApp() {
         tab === "home" && React.createElement(HomeTab, { model: model, intimacy: intimacy }),
         tab === "log" && React.createElement(LogTab, { onBleeding: logBleeding, onMood: logMood, onOvulation: logOvulation, onIntimacy: logIntimacy }),
         tab === "history" && React.createElement(HistoryTab, { cycles: model.cyclesWithEstimates, intimacy: intimacy }),
-        tab === "timeline" && (React.createElement(TimelineTab, { cycles: model.cyclesWithEstimates, moodDays: moodDays, intimacy: intimacy, onDeleteMood: deleteMoodDay, onDeleteIntimacy: deleteIntimacy, onDeleteCycle: deleteCycle, onDeleteOvulation: deleteOvulation })),
+        tab === "timeline" && (React.createElement(TimelineTab, { cycles: model.cyclesWithEstimates, moodDays: moodDays, intimacy: intimacy, onDeleteMood: deleteMoodDay, onDeleteIntimacy: deleteIntimacy, onDeleteCycle: deleteCycle, onDeleteOvulation: deleteOvulation, onEditCycle: editCycleDate, onEditOvulation: editOvulationDate, onEditMood: editMoodDay, onEditIntimacy: editIntimacyDate })),
         tab === "stats" && React.createElement(StatsTab, { model: model, intimacy: intimacy }),
         toast && React.createElement("div", { className: "fixed left-1/2 -translate-x-1/2 bottom-24 px-4 py-2 rounded-full text-sm font-bold shadow-lg", style: { background: COLORS.ink, color: "#fff" } }, toast),
         React.createElement("nav", { className: "fixed bottom-0 left-0 right-0 flex justify-around py-2 border-t", style: { background: COLORS.card, borderColor: COLORS.peachSoft } }, [
@@ -17748,26 +17737,40 @@ function HistoryTab(_a) {
     })));
 }
 function TimelineTab(_a) {
-    var cycles = _a.cycles, moodDays = _a.moodDays, intimacy = _a.intimacy, onDeleteMood = _a.onDeleteMood, onDeleteIntimacy = _a.onDeleteIntimacy, onDeleteCycle = _a.onDeleteCycle, onDeleteOvulation = _a.onDeleteOvulation;
+    var cycles = _a.cycles, moodDays = _a.moodDays, intimacy = _a.intimacy, onDeleteMood = _a.onDeleteMood, onDeleteIntimacy = _a.onDeleteIntimacy, onDeleteCycle = _a.onDeleteCycle, onDeleteOvulation = _a.onDeleteOvulation, onEditCycle = _a.onEditCycle, onEditOvulation = _a.onEditOvulation, onEditMood = _a.onEditMood, onEditIntimacy = _a.onEditIntimacy;
+    var _b = __read(useState(null), 2), editingKey = _b[0], setEditingKey = _b[1];
+    var _c = __read(useState(""), 2), editValue = _c[0], setEditValue = _c[1];
     var entries = [];
     cycles.forEach(function (c) {
-        entries.push({ key: "bleed-" + c.id, date: c.bleedingStart, label: "Bleeding start", emoji: "💧", color: COLORS.coral, bg: COLORS.coralSoft, onDelete: function () { return onDeleteCycle(c.id); } });
+        entries.push({ key: "bleed-" + c.id, date: c.bleedingStart, label: "Bleeding start", emoji: "💧", color: COLORS.coral, bg: COLORS.coralSoft, onDelete: function () { return onDeleteCycle(c.id); }, onEdit: function (newDate) { return onEditCycle(c.id, newDate); } });
         if (c.ovulationActual)
-            entries.push({ key: "ov-" + c.id, date: c.ovulationActual, label: "Ovulation", emoji: "❤️", color: COLORS.plum, bg: COLORS.plumSoft, onDelete: function () { return onDeleteOvulation(c.id); } });
+            entries.push({ key: "ov-" + c.id, date: c.ovulationActual, label: "Ovulation", emoji: "❤️", color: COLORS.plum, bg: COLORS.plumSoft, onDelete: function () { return onDeleteOvulation(c.id); }, onEdit: function (newDate) { return onEditOvulation(c.id, newDate); } });
     });
-    moodDays.forEach(function (d) { return entries.push({ key: "mood-" + d, date: d, label: "Mood day", emoji: "🌙", color: COLORS.peach, bg: COLORS.peachSoft, onDelete: function () { return onDeleteMood(d); } }); });
-    intimacy.forEach(function (d) { return entries.push({ key: "int-" + d, date: d, label: "Intimacy", emoji: "💕", color: COLORS.gold, bg: COLORS.goldSoft, onDelete: function () { return onDeleteIntimacy(d); } }); });
+    moodDays.forEach(function (d) { return entries.push({ key: "mood-" + d, date: d, label: "Mood day", emoji: "🌙", color: COLORS.peach, bg: COLORS.peachSoft, onDelete: function () { return onDeleteMood(d); }, onEdit: function (newDate) { return onEditMood(d, newDate); } }); });
+    intimacy.forEach(function (d) { return entries.push({ key: "int-" + d, date: d, label: "Intimacy", emoji: "💕", color: COLORS.gold, bg: COLORS.goldSoft, onDelete: function () { return onDeleteIntimacy(d); }, onEdit: function (newDate) { return onEditIntimacy(d, newDate); } }); });
     entries.sort(function (a, b) { return (a.date < b.date ? 1 : -1); });
+    function startEdit(e) { setEditingKey(e.key); setEditValue(e.date); }
+    function confirmEdit(e) { e.onEdit(editValue); setEditingKey(null); }
+    function cancelEdit() { setEditingKey(null); }
     return (React.createElement("div", { className: "px-5 space-y-2" },
-        React.createElement("p", { className: "text-sm font-semibold mb-1", style: { color: COLORS.inkSoft } }, "Everything you've logged, most recent first. Tap \u00D7 to remove a mistaken entry."),
-        entries.map(function (e) { return (React.createElement("div", { key: e.key, className: "rounded-2xl p-3 flex items-center justify-between", style: { background: COLORS.card } },
+        React.createElement("p", { className: "text-sm font-semibold mb-1", style: { color: COLORS.inkSoft } }, "Everything you've logged, most recent first. Tap the pencil to fix a date, or \u00D7 to remove it."),
+        entries.map(function (e) { return (React.createElement("div", { key: e.key, className: "rounded-2xl p-3", style: { background: COLORS.card } }, editingKey === e.key ? (React.createElement("div", { className: "flex items-center gap-2" },
+            React.createElement("div", { className: "rounded-full p-2 text-sm", style: { background: e.bg } }, e.emoji),
+            React.createElement("input", { type: "date", value: editValue, onChange: function (ev) { return setEditValue(ev.target.value); }, className: "rounded-xl px-2 py-1.5 border-2 font-semibold text-sm", style: { borderColor: COLORS.peachSoft, color: COLORS.ink }, autoFocus: true }),
+            React.createElement("button", { onClick: function () { return confirmEdit(e); }, className: "rounded-full p-1.5", style: { color: COLORS.coral }, title: "Save" },
+                React.createElement(Check, { size: 16, strokeWidth: 2.5 })),
+            React.createElement("button", { onClick: cancelEdit, className: "rounded-full p-1.5", style: { color: COLORS.inkSoft }, title: "Cancel" },
+                React.createElement(X, { size: 16, strokeWidth: 2.5 })))) : (React.createElement("div", { className: "flex items-center justify-between" },
             React.createElement("div", { className: "flex items-center gap-3" },
                 React.createElement("div", { className: "rounded-full p-2 text-sm", style: { background: e.bg } }, e.emoji),
                 React.createElement("div", null,
                     React.createElement("div", { className: "font-bold text-sm", style: { color: COLORS.ink } }, e.label),
                     React.createElement("div", { className: "text-xs font-semibold", style: { color: COLORS.inkSoft } }, fmtFull(e.date)))),
-            React.createElement("button", { onClick: e.onDelete, className: "rounded-full p-1.5", style: { color: COLORS.inkSoft }, title: "Delete this entry" },
-                React.createElement(X, { size: 16, strokeWidth: 2.5 })))); })));
+            React.createElement("div", { className: "flex items-center gap-1" },
+                React.createElement("button", { onClick: function () { return startEdit(e); }, className: "rounded-full p-1.5", style: { color: COLORS.inkSoft }, title: "Edit this date" },
+                    React.createElement(Pencil, { size: 15, strokeWidth: 2.5 })),
+                React.createElement("button", { onClick: e.onDelete, className: "rounded-full p-1.5", style: { color: COLORS.inkSoft }, title: "Delete this entry" },
+                    React.createElement(X, { size: 16, strokeWidth: 2.5 }))))))); })));
 }
 function StatsTab(_a) {
     var model = _a.model, intimacy = _a.intimacy;
@@ -17809,6 +17812,8 @@ function StatsTab(_a) {
 }
 ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(CycleTrackerApp));
 
+// Mark the app as successfully mounted once this script has run without throwing.
+window.__appMounted = true;
 </script>
 </body>
 </html>
